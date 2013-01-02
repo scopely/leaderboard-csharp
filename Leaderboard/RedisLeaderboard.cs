@@ -380,7 +380,7 @@ namespace Leaderboard
 
         protected virtual string GetMemberDataKey(string leaderboardName)
         {
-            return String.Format("{0}:member_data");
+            return String.Format("{0}:member_data", leaderboardName);
         }
 
         protected virtual string ConvertBytes(byte[] bytes)
