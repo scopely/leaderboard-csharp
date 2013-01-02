@@ -144,7 +144,7 @@ namespace Leaderboard
             using (var tran = Connection.CreateTransaction())
             {
                 var zs = tran.SortedSets.Score(Db, leaderboardName, member);
-                var zr = tran.SortedSets.Rank(Db, GetMemberDataKey(leaderboardName), member, Reverse);
+                var zr = tran.SortedSets.Rank(Db, leaderboardName, member, Reverse);
                 var exec = tran.Execute();
 
                 var score = Connection.Wait(zs);
