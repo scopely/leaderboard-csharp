@@ -13,9 +13,8 @@ namespace Leaderboard
                     return RedisAggregate.Max;
                 case Aggregate.MIN:
                     return RedisAggregate.Min;
-                case Aggregate.SUM:
                 default:
-                    return RedisAggregate.Sum;;
+                    return RedisAggregate.Sum;
             }
         }
 

@@ -250,9 +250,14 @@ namespace Leaderboard
                 var offset = (int) ((position - 1) % pageSize);
 
                 var members = GetMembers(leaderboardName, currPage, options);
-                if (members != null && members.Any())
+                if (members == null)
                 {
-                    var membersList = members.ToList();
+                    return null;
+                }
+
+                var membersList = members as IList<Record<K, V, T>> ?? members.ToList();
+                if (membersList.Any())
+                {
                     return membersList[offset];
                 }
             }

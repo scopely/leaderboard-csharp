@@ -296,14 +296,16 @@ namespace Leaderboard
                                                                              IEnumerable<string> members,
                                                                              LeaderboardOptions options = null)
         {
-            IEnumerable<Record<string, double, T>> rankedMembers = null;
             var ranks = new List<Task<long?>>();
             var scores = new List<Task<double?>>();
+            var membersList = members.ToList();
             Task<bool> exec;
+
+            options = options ?? new LeaderboardOptions();
 
             using (var tran = Connection.CreateTransaction())
             {
-                foreach (var member in members)
+                foreach (var member in membersList)
                 {
                     ranks.Add(tran.SortedSets.Rank(Db, leaderbaordName, member, Reverse));
                     scores.Add(tran.SortedSets.Score(Db, leaderbaordName, member));
@@ -312,25 +314,25 @@ namespace Leaderboard
                 exec = tran.Execute();
             }
 
-            rankedMembers = members.Select((m, i) =>
-                                               {
-                                                   var rank = Connection.Wait(ranks[i]);
-                                                   var score = Connection.Wait(scores[i]);
-                                                   T data = default(T);
+            IEnumerable<Record<string, double, T>> rankedMembers = membersList.Select((m, i) =>
+                                                           {
+                                                               var rank = Connection.Wait(ranks[i]);
+                                                               var score = Connection.Wait(scores[i]);
+                                                               T data = default(T);
 
-                                                   if (rank == null)
-                                                   {
-                                                       return null;
-                                                   }
+                                                               if (rank == null || score == null)
+                                                               {
+                                                                   return null;
+                                                               }
 
-                                                   if (options.WithMemberData)
-                                                   {
-                                                       data = GetMemberData(leaderbaordName, m);
-                                                   }
+                                                               if (options.WithMemberData)
+                                                               {
+                                                                   data = GetMemberData(leaderbaordName, m);
+                                                               }
 
-                                                   return new Record<string, double, T>(m, score.Value, rank.Value + 1,
-                                                                                        data);
-                                               });
+                                                               return new Record<string, double, T>(m, score.Value, rank.Value + 1,
+                                                                                                    data);
+                                                           });
             rankedMembers = rankedMembers.Where(r => r != null);
 
             switch (options.SortBy)
