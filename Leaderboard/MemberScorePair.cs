@@ -1,17 +1,17 @@
 ﻿namespace Leaderboard
 {
-    public class MemberScorePair
+    public class MemberScorePair<K, V> where V: struct
     {
-        public string Member { get; set; }
-        public double Score { get; set; }
+        public K Member { get; set; }
+        public V Score { get; set; }
 
-        public MemberScorePair(string member, double score)
+        public MemberScorePair(K member, V score)
         {
             Member = member;
             Score = score;
         }
 
-        public MemberScorePair() : this(null, 0.0)
+        public MemberScorePair() : this(default(K), default(V))
         { }
     }
 }

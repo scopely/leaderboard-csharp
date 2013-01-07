@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Leaderboard
 {
-    public interface IRedisLeaderboard<T> : ILeaderboard<T>
+    public interface IRedisLeaderboard<T> : ILeaderboard<string, double, T>
     {
         void ExpireLeaderboard(int seconds);
         void ExpireLeaderboard(string leaderboardName, int seconds);

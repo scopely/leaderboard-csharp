@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Leaderboard
 {
-    public interface ILeaderboard<T>
+    public interface ILeaderboard<K, V, T> where V: struct
     {
         string LeaderboardName { get; set; }
         int PageSize { get; set; }
@@ -12,29 +12,29 @@ namespace Leaderboard
         void DeleteLeaderboard();
         void DeleteLeaderboard(string leaderboardName);
 
-        void RankMember(string member, double score, T data = default(T));
-        void RankMember(string leaderboardName, string member, double score, T data = default(T));
+        void RankMember(K member, V score, T data = default(T));
+        void RankMember(string leaderboardName, K member, V score, T data = default(T));
 
-        bool RankMemberIf(Func<string, double?, double, T, bool, bool> condition, string member, double score,
+        bool RankMemberIf(Func<K, V?, V, T, bool, bool> condition, K member, V score,
                           T data = default(T));
 
-        bool RankMemberIf(string leaderboardName, Func<string, double?, double, T, bool, bool> condition, string member,
-                          double score, T data = default(T));
+        bool RankMemberIf(string leaderboardName, Func<K, V?, V, T, bool, bool> condition, K member,
+                          V score, T data = default(T));
 
-        T GetMemberData(string member);
-        T GetMemberData(string leaderboardName, string member);
+        T GetMemberData(K member);
+        T GetMemberData(string leaderboardName, K member);
 
-        void UpdateMemberData(string member, T data);
-        void UpdateMemberData(string leaderboardName, string member, T data);
+        void UpdateMemberData(K member, T data);
+        void UpdateMemberData(string leaderboardName, K member, T data);
 
-        void RemoveMemberData(string member);
-        void RemoveMemberData(string leaderboardName, string member);
+        void RemoveMemberData(K member);
+        void RemoveMemberData(string leaderboardName, K member);
 
-        void RankMembers(IEnumerable<MemberScorePair> memberScores);
-        void RankMembers(string leaderboardName, IEnumerable<MemberScorePair> memberScores);
+        void RankMembers(IEnumerable<MemberScorePair<K, V>> memberScores);
+        void RankMembers(string leaderboardName, IEnumerable<MemberScorePair<K,V>> memberScores);
 
-        void RemoveMember(string member);
-        void RemoveMember(string leaderboardName, string member);
+        void RemoveMember(K member);
+        void RemoveMember(string leaderboardName, K member);
 
         long TotalMembers();
         long TotalMembers(string leaderboardName);
@@ -42,55 +42,55 @@ namespace Leaderboard
         int TotalPages(int? pageSize = null);
         int TotalPages(string leaderboardName, int? pageSize = null);
 
-        long TotalMembersInScoreRange(double minScore, double maxScore);
-        long TotalMembersInScoreRange(string leaderboardName, double minScore, double maxScore);
+        long TotalMembersInScoreRange(V minScore, V maxScore);
+        long TotalMembersInScoreRange(string leaderboardName, V minScore, V maxScore);
 
-        double ChangeScore(string member, double scoreDelta);
-        double ChangeScore(string leaderboardName, string member, double scoreDelta);
+        V ChangeScore(K member, V scoreDelta);
+        V ChangeScore(string leaderboardName, K member, V scoreDelta);
 
-        long? GetRank(string member);
-        long? GetRank(string leaderboardName, string member);
+        long? GetRank(K member);
+        long? GetRank(string leaderboardName, K member);
 
-        double? GetScore(string member);
-        double? GetScore(string leaderboardName, string member);
+        V? GetScore(K member);
+        V? GetScore(string leaderboardName, K member);
 
-        bool CheckMember(string member);
-        bool CheckMember(string leaderboardName, string member);
+        bool CheckMember(K member);
+        bool CheckMember(string leaderboardName, K member);
 
-        Record<T> GetRecord(string member);
-        Record<T> GetRecord(string leaderboardName, string member);
+        Record<K, V, T> GetRecord(K member);
+        Record<K, V, T> GetRecord(string leaderboardName, K member);
 
-        void RemoveMembersInScoreRange(double minScore, double maxScore);
-        void RemoveMembersInScoreRange(string leaderboardName, double minScore, double maxScore);
+        void RemoveMembersInScoreRange(V minScore, V maxScore);
+        void RemoveMembersInScoreRange(string leaderboardName, V minScore, V maxScore);
 
-        int? GetPercentile(string member);
-        int? GetPercentile(string leaderboardName, string member);
+        int? GetPercentile(K member);
+        int? GetPercentile(string leaderboardName, K member);
 
-        int GetPage(string member, int? pageSize = null);
-        int GetPage(string leaderboardName, string member, int? pageSize = null);
+        int GetPage(K member, int? pageSize = null);
+        int GetPage(string leaderboardName, K member, int? pageSize = null);
 
-        IEnumerable<Record<T>> GetMembers(int page, LeaderboardOptions options = null);
-        IEnumerable<Record<T>> GetMembers(string leaderboardName, int page, LeaderboardOptions options = null);
+        IEnumerable<Record<K, V, T>> GetMembers(int page, LeaderboardOptions options = null);
+        IEnumerable<Record<K,V, T>> GetMembers(string leaderboardName, int page, LeaderboardOptions options = null);
 
-        IEnumerable<Record<T>> GetAllMembers(LeaderboardOptions options = null);
-        IEnumerable<Record<T>> GetAllMembers(string leaderboardName, LeaderboardOptions options = null);
+        IEnumerable<Record<K, V, T>> GetAllMembers(LeaderboardOptions options = null);
+        IEnumerable<Record<K, V, T>> GetAllMembers(string leaderboardName, LeaderboardOptions options = null);
 
-        IEnumerable<Record<T>> GetMembersInScoreRange(double minScore, double maxScore, LeaderboardOptions options = null);
-        IEnumerable<Record<T>> GetMembersInScoreRange(string leaderboardName, double minScore, double maxScore,
+        IEnumerable<Record<K, V, T>> GetMembersInScoreRange(V minScore, V maxScore, LeaderboardOptions options = null);
+        IEnumerable<Record<K, V, T>> GetMembersInScoreRange(string leaderboardName, V minScore, V maxScore,
+                                                            LeaderboardOptions options = null);
+
+        IEnumerable<Record<K, V, T>> GetMembersInRankRange(long startRank, long endRank, LeaderboardOptions options = null);
+        IEnumerable<Record<K, V, T>> GetMembersInRankRange(string leaderboardName, long startRank, long endRank,
+                                                           LeaderboardOptions options = null);
+
+        Record<K, V, T> GetMemberAt(long position, LeaderboardOptions options = null);
+        Record<K, V, T> GetMemberAt(string leaderboardName, long position, LeaderboardOptions options = null);
+
+        IEnumerable<Record<K, V, T>> GetAroundMe(K member, LeaderboardOptions options = null);
+        IEnumerable<Record<K, V, T>> GetAroundMe(string leaderboardName, K member, LeaderboardOptions options = null);
+
+        IEnumerable<Record<K, V, T>> GetRankedList(IEnumerable<K> members, LeaderboardOptions options = null);
+        IEnumerable<Record<K, V, T>> GetRankedList(string leaderbaordName, IEnumerable<K> members,
                                                    LeaderboardOptions options = null);
-
-        IEnumerable<Record<T>> GetMembersInRankRange(long startRank, long endRank, LeaderboardOptions options = null);
-        IEnumerable<Record<T>> GetMembersInRankRange(string leaderboardName, long startRank, long endRank,
-                                                  LeaderboardOptions options = null);
-
-        Record<T> GetMemberAt(long position, LeaderboardOptions options = null);
-        Record<T> GetMemberAt(string leaderboardName, long position, LeaderboardOptions options = null);
-
-        IEnumerable<Record<T>> GetAroundMe(string member, LeaderboardOptions options = null);
-        IEnumerable<Record<T>> GetAroundMe(string leaderboardName, string member, LeaderboardOptions options = null);
-
-        IEnumerable<Record<T>> GetRankedList(IEnumerable<string> members, LeaderboardOptions options = null);
-        IEnumerable<Record<T>> GetRankedList(string leaderbaordName, IEnumerable<string> members,
-                                             LeaderboardOptions options = null);
     }
 }

@@ -7,7 +7,7 @@ using BookSleeve;
 
 namespace Leaderboard
 {
-    public class RedisLeaderboard<T> : BaseLeaderboard<T>, IRedisLeaderboard<T>, IDisposable
+    public class RedisLeaderboard<T> : BaseLeaderboard<string, double, T>, IRedisLeaderboard<T>, IDisposable
     {
         public static string DEFAULT_HOST = "localhost";
         public static int DEFAULT_PORT = 6379;
@@ -84,7 +84,7 @@ namespace Leaderboard
             Connection.Wait(hd);
         }
 
-        public override void RankMembers(string leaderboardName, IEnumerable<MemberScorePair> memberScores)
+        public override void RankMembers(string leaderboardName, IEnumerable<MemberScorePair<string, double>> memberScores)
         {
             using (var tran = Connection.CreateTransaction())
             {
@@ -139,7 +139,7 @@ namespace Leaderboard
             return Connection.Wait(zs);
         }
 
-        public override Record<T> GetRecord(string leaderboardName, string member)
+        public override Record<string, double, T> GetRecord(string leaderboardName, string member)
         {
             using (var tran = Connection.CreateTransaction())
             {
@@ -153,7 +153,7 @@ namespace Leaderboard
 
                 if (score.HasValue && rank.HasValue)
                 {
-                    return new Record<T>(member, score.Value, rank.Value);
+                    return new Record<string, double, T>(member, score.Value, rank.Value);
                 }
 
                 return null;
@@ -198,7 +198,8 @@ namespace Leaderboard
             }
         }
 
-        public override IEnumerable<Record<T>> GetMembers(string leaderboardName, int page, LeaderboardOptions options = null)
+        public override IEnumerable<Record<string, double, T>> GetMembers(string leaderboardName, int page,
+                                                                          LeaderboardOptions options = null)
         {
             if (page < 1)
             {
@@ -231,10 +232,11 @@ namespace Leaderboard
                 return GetRankedList(leaderboardName, items.Select(r => r.Key), options);
             }
 
-            return new Record<T>[0];
+            return new Record<string, double, T>[0];
         }
 
-        public override IEnumerable<Record<T>> GetAllMembers(string leaderboardName, LeaderboardOptions options = null)
+        public override IEnumerable<Record<string, double, T>> GetAllMembers(string leaderboardName,
+                                                                             LeaderboardOptions options = null)
         {
             var zr = Connection.SortedSets.RangeString(Db, leaderboardName, 0, -1, Reverse);
             var items = Connection.Wait(zr);
@@ -244,11 +246,12 @@ namespace Leaderboard
                 return GetRankedList(leaderboardName, items.Select(r => r.Key), options);
             }
 
-            return new Record<T>[0];
+            return new Record<string, double, T>[0];
         }
 
-        public override IEnumerable<Record<T>> GetMembersInScoreRange(string leaderboardName, double minScore, double maxScore,
-                                                           LeaderboardOptions options = null)
+        public override IEnumerable<Record<string, double, T>> GetMembersInScoreRange(string leaderboardName,
+                                                                                      double minScore, double maxScore,
+                                                                                      LeaderboardOptions options = null)
         {
             var zr = Connection.SortedSets.Range(Db, leaderboardName, minScore, maxScore, Reverse);
             var items = Connection.Wait(zr);
@@ -258,10 +261,12 @@ namespace Leaderboard
                 return GetRankedList(leaderboardName, items.Select(r => ConvertBytes(r.Key)), options);
             }
 
-            return new Record<T>[0];
+            return new Record<string, double, T>[0];
         }
 
-        public override IEnumerable<Record<T>> GetMembersInRankRange(string leaderboardName, long startRank, long endRank, LeaderboardOptions options = null)
+        public override IEnumerable<Record<string, double, T>> GetMembersInRankRange(string leaderboardName,
+                                                                                     long startRank, long endRank,
+                                                                                     LeaderboardOptions options = null)
         {
             startRank -= 1;
             if (startRank < 0)
@@ -284,12 +289,14 @@ namespace Leaderboard
                 return GetRankedList(leaderboardName, items.Select(r => r.Key), options);
             }
 
-            return new Record<T>[0];
+            return new Record<string, double, T>[0];
         }
 
-        public override IEnumerable<Record<T>> GetRankedList(string leaderbaordName, IEnumerable<string> members, LeaderboardOptions options = null)
+        public override IEnumerable<Record<string, double, T>> GetRankedList(string leaderbaordName,
+                                                                             IEnumerable<string> members,
+                                                                             LeaderboardOptions options = null)
         {
-            IEnumerable<Record<T>> rankedMembers = null;
+            IEnumerable<Record<string, double, T>> rankedMembers = null;
             var ranks = new List<Task<long?>>();
             var scores = new List<Task<double?>>();
             Task<bool> exec;
@@ -321,7 +328,8 @@ namespace Leaderboard
                                                        data = GetMemberData(leaderbaordName, m);
                                                    }
 
-                                                   return new Record<T>(m, score.Value, rank.Value + 1, data);
+                                                   return new Record<string, double, T>(m, score.Value, rank.Value + 1,
+                                                                                        data);
                                                });
             rankedMembers = rankedMembers.Where(r => r != null);
 
