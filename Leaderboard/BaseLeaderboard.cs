@@ -30,6 +30,13 @@ namespace Leaderboard
         protected BaseLeaderboard(string leaderboardName) : this(leaderboardName, DEFAULT_PAGE_SIZE, DEFAULT_REVERSE)
         { }
 
+        public virtual bool CheckLeaderboard()
+        {
+            return CheckLeaderboard(LeaderboardName);
+        }
+
+        public abstract bool CheckLeaderboard(string leaderboardName);
+
         public virtual void DeleteLeaderboard()
         {
             DeleteLeaderboard(LeaderboardName);

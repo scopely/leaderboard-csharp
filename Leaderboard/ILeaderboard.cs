@@ -9,6 +9,9 @@ namespace Leaderboard
         int PageSize { get; set; }
         bool Reverse { get; set; }
 
+        bool CheckLeaderboard();
+        bool CheckLeaderboard(string leaderboardName);
+
         void DeleteLeaderboard();
         void DeleteLeaderboard(string leaderboardName);
 

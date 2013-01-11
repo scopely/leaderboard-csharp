@@ -40,6 +40,12 @@ namespace Leaderboard
         public RedisLeaderboard(string leaderboardName) : this(leaderboardName, DEFAULT_PAGE_SIZE, DEFAULT_REVERSE)
         { }
 
+        public override bool CheckLeaderboard(string leaderboardName)
+        {
+            var ke = Connection.Keys.Exists(Db, leaderboardName);
+            return Connection.Wait(ke);
+        }
+
         public override void DeleteLeaderboard(string leaderboardName)
         {
             using (var tran = Connection.CreateTransaction())
