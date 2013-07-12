@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Leaderboard
+namespace Leaderboard.Redis
 {
     public interface IRedisLeaderboard<T> : ILeaderboard<string, double, T>
     {

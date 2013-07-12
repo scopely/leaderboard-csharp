@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using BookSleeve;
 
-namespace Leaderboard
+namespace Leaderboard.Redis
 {
     public class RedisLeaderboard<T> : BaseLeaderboard<string, double, T>, IRedisLeaderboard<T>, IDisposable
     {
