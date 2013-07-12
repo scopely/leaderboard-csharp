@@ -235,7 +235,7 @@ namespace Leaderboard
 
             if (items != null)
             {
-                return GetRankedList(leaderboardName, items.Select(r => r.Key), options);
+                return GetRankedList(leaderboardName, items, options, startingOffset);
             }
 
             return new Record<string, double, T>[0];
@@ -249,7 +249,7 @@ namespace Leaderboard
 
             if (items != null)
             {
-                return GetRankedList(leaderboardName, items.Select(r => r.Key), options);
+                return GetRankedList(leaderboardName, items, options);
             }
 
             return new Record<string, double, T>[0];
@@ -259,12 +259,12 @@ namespace Leaderboard
                                                                                       double minScore, double maxScore,
                                                                                       LeaderboardOptions options = null)
         {
-            var zr = Connection.SortedSets.Range(Db, leaderboardName, minScore, maxScore, Reverse);
+            var zr = Connection.SortedSets.RangeString(Db, leaderboardName, minScore, maxScore, Reverse);
             var items = Connection.Wait(zr);
 
             if (items != null)
             {
-                return GetRankedList(leaderboardName, items.Select(r => ConvertBytes(r.Key)), options);
+                return GetRankedList(leaderboardName, items.Select(i => i.Key), options);
             }
 
             return new Record<string, double, T>[0];
@@ -292,7 +292,7 @@ namespace Leaderboard
 
             if (items != null)
             {
-                return GetRankedList(leaderboardName, items.Select(r => r.Key), options);
+                return GetRankedList(leaderboardName, items, options, startRank);
             }
 
             return new Record<string, double, T>[0];
@@ -324,21 +324,50 @@ namespace Leaderboard
                                                            {
                                                                var rank = Connection.Wait(ranks[i]);
                                                                var score = Connection.Wait(scores[i]);
-                                                               T data = default(T);
-
+                                                               
                                                                if (rank == null || score == null)
                                                                {
                                                                    return null;
                                                                }
 
-                                                               if (options.WithMemberData)
-                                                               {
-                                                                   data = GetMemberData(leaderbaordName, m);
-                                                               }
-
-                                                               return new Record<string, double, T>(m, score.Value, rank.Value + 1,
-                                                                                                    data);
+                                                               return new Record<string, double, T>(m, score.Value, rank.Value + 1);
                                                            });
+            rankedMembers = GetRankedListInternal(leaderbaordName, rankedMembers, options);
+
+            Connection.Wait(exec);
+
+            return rankedMembers;
+        }
+
+        protected IEnumerable<Record<string, double, T>> GetRankedList(string leaderbaordName, 
+                                                                       IEnumerable<KeyValuePair<string, double>> memberScores,
+                                                                       LeaderboardOptions options,
+                                                                       long startingRank = 0)
+        {
+            IEnumerable<Record<string, double, T>> records =
+                memberScores.Select((ms, i) => new Record<string, double, T>(ms.Key, ms.Value, ++startingRank));
+            
+            return GetRankedListInternal(leaderbaordName, records, options);
+        }
+
+        protected IEnumerable<Record<string, double, T>> GetRankedListInternal(string leaderbaordName,
+                                                                       IEnumerable<Record<string, double, T>> records,
+                                                                       LeaderboardOptions options)
+        {
+            IEnumerable<Record<string, double, T>> rankedMembers = records.Select((r, i) =>
+            {
+                if (r == null) { return null; }
+                T data = default(T);
+                
+                if (options.WithMemberData)
+                {
+                    data = GetMemberData(leaderbaordName, r.Member);
+                }
+
+                r.Data = data;
+
+                return r;
+            });
             rankedMembers = rankedMembers.Where(r => r != null);
 
             switch (options.SortBy)
@@ -350,8 +379,6 @@ namespace Leaderboard
                     rankedMembers = rankedMembers.OrderBy(r => r.Score);
                     break;
             }
-
-            Connection.Wait(exec);
 
             return rankedMembers;
         }
@@ -397,15 +424,6 @@ namespace Leaderboard
         protected virtual string GetMemberDataKey(string leaderboardName)
         {
             return String.Format("{0}:member_data", leaderboardName);
-        }
-
-        protected virtual string ConvertBytes(byte[] bytes)
-        {
-            return bytes == null
-                       ? null
-                       : bytes.Length == 0
-                             ? ""
-                             : Encoding.UTF8.GetString(bytes);
         }
 
         public virtual void Close()
