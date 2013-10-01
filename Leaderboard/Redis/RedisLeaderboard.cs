@@ -13,24 +13,27 @@ namespace Leaderboard.Redis
         public static int DEFAULT_DB = 0;
 
         public int Db { get; set; }
-
-        private readonly Lazy<RedisConnection> _connection; 
+        public IRedisConnectionManager ConnectionManager { get; set; }
+        
         protected virtual RedisConnection Connection
         {
-            get { return _connection.Value; }
+            get { return ConnectionManager.GetConnection(); }
+        }
+
+        public RedisLeaderboard(string leaderboardName, int pageSize, bool reverse, IRedisConnectionManager connManager,
+            int db) : base(leaderboardName, pageSize, reverse)
+        {
+            Db = db;
+            ConnectionManager = connManager;
         }
 
         public RedisLeaderboard(string leaderboardName, int pageSize, bool reverse, string host, int port, int db)
-            : base(leaderboardName, pageSize, reverse)
-        {
-            Db = db;
-            _connection = new Lazy<RedisConnection>(() =>
-                                                        {
-                                                            var connection = new RedisConnection(host, port);
-                                                            connection.Open();
-                                                            return connection;
-                                                        });
-        }
+            : this(leaderboardName, pageSize, reverse, new RedisConnectionManager(host, port), db)
+        { }
+
+        public RedisLeaderboard(string leaderboardName, string host, int port)
+            : this(leaderboardName, DEFAULT_PAGE_SIZE, DEFAULT_REVERSE, host, port, DEFAULT_DB)
+        { }
 
         public RedisLeaderboard(string leaderboardName, int pageSize, bool reverse)
             : this(leaderboardName, pageSize, reverse, DEFAULT_HOST, DEFAULT_PORT, DEFAULT_DB)
@@ -427,18 +430,12 @@ namespace Leaderboard.Redis
 
         public virtual void Close()
         {
-            if (_connection.IsValueCreated)
-            {
-                _connection.Value.Close(false);
-            }
+            ConnectionManager.Reset();
         }
 
         public virtual void Dispose()
         {
-            if (_connection.IsValueCreated)
-            {
-                _connection.Value.Dispose();
-            }
+            ConnectionManager.Dispose();
         }
     }
 }
