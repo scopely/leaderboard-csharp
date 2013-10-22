@@ -309,8 +309,6 @@ namespace Leaderboard.Redis
             var membersList = members.ToList();
             Task<bool> exec;
 
-            options = options ?? new LeaderboardOptions();
-
             using (var tran = Connection.CreateTransaction())
             {
                 foreach (var member in membersList)
@@ -356,6 +354,8 @@ namespace Leaderboard.Redis
                                                                        IEnumerable<Record<string, double, T>> records,
                                                                        LeaderboardOptions options)
         {
+            options = options ?? new LeaderboardOptions();
+
             IEnumerable<Record<string, double, T>> rankedMembers = records.Select((r, i) =>
             {
                 if (r == null) { return null; }
