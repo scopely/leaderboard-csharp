@@ -161,7 +161,7 @@ namespace Leaderboard.Redis
 
                 if (score.HasValue && rank.HasValue)
                 {
-                    return new Record<string, double, T>(member, score.Value, rank.Value);
+                    return new Record<string, double, T>(member, score.Value, rank.Value + 1);
                 }
 
                 return null;
@@ -192,11 +192,13 @@ namespace Leaderboard.Redis
                 }
                 else
                 {
-                    percentile = (int) Math.Ceiling((double) rank / count * 100);
-
                     if (Reverse)
                     {
-                        percentile = 100 - percentile;
+                        percentile = (int)Math.Floor((double)(count - rank - 1) / count * 100);
+                    }
+                    else
+                    {
+                        percentile = (int)Math.Floor((double)rank / count * 100);
                     }
                 }
 

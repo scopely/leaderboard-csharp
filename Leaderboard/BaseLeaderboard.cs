@@ -198,10 +198,6 @@ namespace Leaderboard
             {
                 rank = 0;
             }
-            else
-            {
-                rank += 1;
-            }
 
             return (int) Math.Ceiling((double) rank.Value / pageSize.Value);
         }
