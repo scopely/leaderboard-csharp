@@ -18,6 +18,8 @@ namespace Leaderboard
         void RankMember(K member, V score, T data = default(T));
         void RankMember(string leaderboardName, K member, V score, T data = default(T));
 
+        void RankMemberAcross(IEnumerable<string> leaderboardNames, K member, V score, T data = default(T));
+
         bool RankMemberIf(Func<K, V?, V, T, bool, bool> condition, K member, V score,
                           T data = default(T));
 
@@ -65,6 +67,9 @@ namespace Leaderboard
 
         void RemoveMembersInScoreRange(V minScore, V maxScore);
         void RemoveMembersInScoreRange(string leaderboardName, V minScore, V maxScore);
+
+        void RemoveMembersOutsideRank(long rank);
+        void RemoveMembersOutsideRank(string leaderboardName, long rank);
 
         int? GetPercentile(K member);
         int? GetPercentile(string leaderboardName, K member);

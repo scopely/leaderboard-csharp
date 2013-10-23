@@ -73,6 +73,23 @@ namespace Leaderboard.Redis
             }
         }
 
+        public override void RankMemberAcross(IEnumerable<string> leaderboardNames, string member, double score, T data = default(T))
+        {
+            using (var tran = Connection.CreateTransaction())
+            {
+                foreach (var leaderboardName in leaderboardNames)
+                {
+                    tran.SortedSets.Add(Db, leaderboardName, member, score);
+                    if (data != null)
+                    {
+                        tran.Hashes.Set(Db, GetMemberDataKey(leaderboardName), member, data.ToJson());
+                    }
+                }
+
+                Connection.Wait(tran.Execute());
+            }
+        }
+
         public override T GetMemberData(string leaderboardName, string member)
         {
             var hg = Connection.Hashes.GetString(Db, GetMemberDataKey(leaderboardName), member);
@@ -171,6 +188,14 @@ namespace Leaderboard.Redis
         public override void RemoveMembersInScoreRange(string leaderboardName, double minScore, double maxScore)
         {
             var zr = Connection.SortedSets.RemoveRange(Db, leaderboardName, minScore, maxScore);
+            Connection.Wait(zr);
+        }
+
+        public override void RemoveMembersOutsideRank(string leaderboardName, long rank)
+        {
+            var start = Reverse ? rank : 0;
+            var stop = Reverse ? -1 : -rank - 1;
+            var zr = Connection.SortedSets.RemoveRange(Db, leaderboardName, start, stop);
             Connection.Wait(zr);
         }
 
