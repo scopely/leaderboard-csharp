@@ -431,12 +431,12 @@ namespace Leaderboard.Redis
         public virtual void ExpireLeaderboardAt(string leaderboardName, DateTime time)
         {
             var seconds = (time.ToUniversalTime() - DateTime.UtcNow).TotalSeconds;
-            ExpireLeaderboard((int) seconds);
+            ExpireLeaderboard(leaderboardName, (int) seconds);
         }
 
         public virtual void MergeLeaderboards(string destination, IEnumerable<string> keys, Aggregate aggregate = Aggregate.SUM)
         {
-            var keyArray = (new[] {LeaderboardName}).Concat(keys);
+            var keyArray = (new[] {LeaderboardName}).Concat(keys).Where(k => !String.IsNullOrEmpty(k));
             var zu = Connection.SortedSets.UnionAndStore(Db, destination, keyArray.ToArray(),
                                                          aggregate.ToRedisAggregate());
             Connection.Wait(zu);
@@ -444,7 +444,7 @@ namespace Leaderboard.Redis
 
         public virtual void IntersectLeaderboards(string destination, IEnumerable<string> keys, Aggregate aggregate = Aggregate.SUM)
         {
-            var keyArray = (new[] { LeaderboardName }).Concat(keys);
+            var keyArray = (new[] { LeaderboardName }).Concat(keys).Where(k => !String.IsNullOrEmpty(k));
             var zu = Connection.SortedSets.IntersectAndStore(Db, destination, keyArray.ToArray(),
                                                              aggregate.ToRedisAggregate());
             Connection.Wait(zu);
