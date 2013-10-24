@@ -19,7 +19,7 @@ namespace Leaderboard.Redis
         public bool AllowAdmin { get; set; }
         public int SyncTimeout { get; set; }
 
-        public RedisConnectionManager(string host, int port = 6379, int ioTimeout = -1, string password = null, int maxUnsent = 2147483647, bool allowAdmin = false, int syncTimeout = 10000)
+        public RedisConnectionManager(string host, int port = 6379, int ioTimeout = -1, string password = null, int maxUnsent = Int32.MaxValue, bool allowAdmin = false, int syncTimeout = 10000)
         {
             Host = host;
             Port = port;
